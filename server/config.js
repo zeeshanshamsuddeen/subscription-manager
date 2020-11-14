@@ -9,6 +9,10 @@ const config = {
       PASSWORD: process.env.DB_PASSWORD,
     },
   },
+
+  timeFormats: {
+    users: 'YYYY-MM-DD hh:mm:ss',
+  },
 };
 
 module.exports = config;

@@ -1,5 +1,7 @@
 const Sequelize = require('sequelize');
 
+const UserModel = require('./models/users');
+
 const config = require('../config');
 
 const { DATABASE } = config.appDefaults;
@@ -23,7 +25,10 @@ const sequelize = new Sequelize(
   },
 );
 
+const users = UserModel(sequelize, Sequelize);
+
 sequelize.sync();
 
 module.exports = {
+  users,
 };
