@@ -1,0 +1,40 @@
+{
+  "name": "subscription-manager",
+  "version": "1.0.0",
+  "description": "A simple subscription manager",
+  "main": "bin/www.js",
+  "bin": {
+    "subscription-manager": "www.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "create-database": "node server/supportScripts/createDatabase.js",
+    "start": "npm run create-database && nodemon bin/www.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeeshanshamsuddeen/subscription-manager.git"
+  },
+  "author": "Zeeshan Shamsuddeen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zeeshanshamsuddeen/subscription-manager/issues"
+  },
+  "homepage": "https://github.com/zeeshanshamsuddeen/subscription-manager#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "helmet": "^3.18.0",
+    "mysql2": "^2.2.5",
+    "sequelize": "^6.3.5",
+    "uuid": "^8.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.13.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
+  }
+}
