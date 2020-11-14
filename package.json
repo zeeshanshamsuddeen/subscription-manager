@@ -9,7 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "create-database": "node server/supportScripts/createDatabase.js",
-    "start": "npm run create-database && nodemon bin/www.js"
+    "add-plans": "node server/supportScripts/addPlans.js",
+    "start": "npm run create-database && npm run add-plans && nodemon bin/www.js"
   },
   "repository": {
     "type": "git",
