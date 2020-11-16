@@ -9,6 +9,16 @@ const create = async (req, res) => {
   return res.json({ status: keywords.SUCCESS, amount });
 };
 
+const get = async (req, res) => {
+  const { username, date } = req.params;
+  const { success, error, code, data } = await subscriptions.get(username, date);
+  if (!success) {
+    return res.status(code).send({ status: keywords.FAILURE, error });
+  }
+  return res.json(data);
+};
+
 module.exports = {
   create,
+  get,
 };

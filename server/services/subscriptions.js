@@ -99,11 +99,9 @@ const makePayment = async (username, amount) => {
     payment_type: paymentType,
     amount: amountToSend,
   };
-  console.log('body: ', body);
   try {
     const paymentResponse = await axios.post(config.paymentAPI.url, body);
     const { status, payment_id: paymentID } = paymentResponse.data;
-    console.log('status, payment_id: paymentID: ', status, paymentID);
     if (status === keywords.SUCCESS) {
       return { success: true, paymentID };
     }
@@ -161,6 +159,48 @@ const create = async (initValues) => {
   return { success: false, code: httpStatus.error, error: 'Internal Server Error' };
 };
 
+const getSubscriptionForDate = async (username, date) => {
+  const subscriptionFromDB = await db.subscriptions.findOne({
+    where: {
+      username,
+      isActive: true,
+      startDate: { [dbOps.lte]: time.getTime(date) },
+      endDate: { [dbOps.gte]: time.getTime(date) },
+    },
+  });
+  if (!subscriptionFromDB) {
+    return { success: false, error: 'Subscription not found', code: httpStatus.notFound };
+  }
+  const { planID, endDate } = subscriptionFromDB;
+  const dayDifference = time.getDayDifference(endDate, date);
+  const data = {
+    plan_id: planID,
+    days_left: dayDifference,
+  };
+  return { success: true, data };
+};
+
+const getSubscriptions = async (username) => {
+  const subscriptionsFromDB = await db.subscriptions.findAll({ where: { username } });
+  const data = subscriptionsFromDB.map((sub) => {
+    const { planID, startDate, endDate } = sub;
+    return {
+      plan_id: planID,
+      start_date: time.getTime(startDate, config.timeFormats.subscriptions),
+      valid_till: time.getTime(endDate, config.timeFormats.subscriptions),
+    };
+  });
+  return { success: true, data };
+};
+
+const get = async (username, date) => {
+  if (date) {
+    return getSubscriptionForDate(username, date);
+  }
+  return getSubscriptions(username);
+};
+
 module.exports = {
   create,
+  get,
 };
