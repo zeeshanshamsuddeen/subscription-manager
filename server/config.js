@@ -12,6 +12,11 @@ const config = {
 
   timeFormats: {
     users: 'YYYY-MM-DD hh:mm:ss',
+    subscriptions: 'YYYY-MM-DD',
+  },
+
+  paymentAPI: {
+    url: 'https://dummy-payment-server.herokuapp.com/payment',
   },
 };
 
