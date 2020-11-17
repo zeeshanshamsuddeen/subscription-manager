@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  api:
+    container_name: api
+    restart: always
+    build: ./api
+    ports:
+      - "19093:19093"
+    links:
+      - db:db
+    depends_on:
+      - db
+    environment:
+      - PORT=19093
+      - APP_DATABASE_HOST=db
+      - APP_DATABASE_NAME=subscriptionManager
+      - NODE_ENV=development
+      - DB_USERNAME=root
+      - DB_PASSWORD=qwerty123!
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: "subscriptionManager"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "qwerty123!"
+      MYSQL_ROOT_PASSWORD: "qwerty123!"
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - my-db:/var/lib/mysql
+
+volumes:
+  my-db:

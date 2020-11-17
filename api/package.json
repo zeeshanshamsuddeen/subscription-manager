@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "create-database": "node server/supportScripts/createDatabase.js",
     "add-plans": "node server/supportScripts/addPlans.js",
-    "start": "npm run create-database && npm run add-plans && nodemon bin/www.js"
+    "start": "npm run add-plans && nodemon bin/www.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "helmet": "^3.18.0",
     "moment": "^2.29.1",
     "mysql2": "^2.2.5",
+    "nodemon": "^1.19.1",
     "sequelize": "^6.3.5",
     "uuid": "^8.3.1"
   },

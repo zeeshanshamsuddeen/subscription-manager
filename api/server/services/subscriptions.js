@@ -126,7 +126,6 @@ const createNewSubscription = async (subDetails, paymentID) => {
     paymentID,
     isActive: true,
   };
-  console.log('subObject: ', subObject);
   await db.subscriptions.create(subObject);
   return { success: true };
 };

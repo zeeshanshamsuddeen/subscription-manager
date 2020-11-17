@@ -4,12 +4,13 @@ const config = require('../config');
 
 const { DATABASE } = config.appDefaults;
 const {
-  NAME, USERNAME, PASSWORD,
+  NAME, USERNAME, PASSWORD, HOST,
 } = DATABASE;
 
 (() => {
   try {
     mysql.createConnection({
+      uri: HOST,
       user: USERNAME,
       password: PASSWORD,
     })
