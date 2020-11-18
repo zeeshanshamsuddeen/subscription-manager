@@ -53,13 +53,18 @@ const getOverlappingSubscriptions = async (initValues) => {
       [dbOps.or]: [
         {
           startDate: { [dbOps.lte]: time.getTime(newSubStartDate) },
-          endDate: { [dbOps.gte]: time.getTime(newSubStartDate) },
+          endDate: {
+            [dbOps.or]: [
+              null,
+              { [dbOps.gte]: time.getTime(newSubStartDate) },
+            ],
+          },
         },
         {
           startDate: {
             [dbOps.and]: [
               { [dbOps.gte]: time.getTime(newSubStartDate) },
-              { [dbOps.lte]: time.getTime(newSubEndDate) },
+              ...newSubEndDate ? [{ [dbOps.lte]: time.getTime(newSubEndDate) }] : [],
             ],
           },
         },
@@ -130,6 +135,27 @@ const createNewSubscription = async (subDetails, paymentID) => {
   return { success: true };
 };
 
+const getNewSubscriptionDetails = async (username, planID, startDate) => {
+  const { validity, cost: debitAmount } = await db.plans.findOne({ where: { planID } });
+  const endDate = validity ? time.addTime(startDate, { value: validity, units: 'd' }) : null;
+  const subDetails = { username, planID, startDate, endDate, debitAmount };
+  return subDetails;
+};
+
+const processPayment = async (username, totalAmount, subDetails, overlappingSubscriptions) => {
+  let paymentID = null;
+  if (totalAmount) {
+    const paymentResponse = await makePayment(username, totalAmount);
+    if (!paymentResponse.success) {
+      return { success: false, code: httpStatus.error, error: 'Internal Server Error' };
+    }
+    ({ paymentID } = paymentResponse);
+  }
+  await deactivateOverlappingSubscriptions(overlappingSubscriptions);
+  await createNewSubscription(subDetails, paymentID);
+  return { success: true, amount: totalAmount * -1 };
+};
+
 const create = async (initValues) => {
   const validationResult = validateFields(initValues);
   if (!validationResult.success) {
@@ -141,21 +167,13 @@ const create = async (initValues) => {
   }
 
   const { user_name: username, plan_id: planID, start_date: startDate } = initValues;
-  const { validity, cost: debitAmount } = await db.plans.findOne({ where: { planID } });
-  const endDate = time.addTime(startDate, { value: validity, units: 'd' });
-  const subDetails = { username, planID, startDate, endDate };
+  const subDetails = await getNewSubscriptionDetails(username, planID, startDate);
 
   const overlappingSubscriptions = await getOverlappingSubscriptions(subDetails);
   const creditAmount = await calculateAmountToCredit(overlappingSubscriptions);
-  const totalAmount = Number((debitAmount - creditAmount).toFixed(0));
-  const paymentResponse = await makePayment(username, totalAmount);
+  const totalAmount = Number((subDetails.debitAmount - creditAmount).toFixed(0));
 
-  if (paymentResponse.success) {
-    await deactivateOverlappingSubscriptions(overlappingSubscriptions);
-    await createNewSubscription(subDetails, paymentResponse.paymentID);
-    return { success: true, amount: totalAmount * -1 };
-  }
-  return { success: false, code: httpStatus.error, error: 'Internal Server Error' };
+  return processPayment(username, totalAmount, subDetails, overlappingSubscriptions);
 };
 
 const getSubscriptionForDate = async (username, date) => {
@@ -164,7 +182,12 @@ const getSubscriptionForDate = async (username, date) => {
       username,
       isActive: true,
       startDate: { [dbOps.lte]: time.getTime(date) },
-      endDate: { [dbOps.gte]: time.getTime(date) },
+      endDate: {
+        [dbOps.or]: [
+          null,
+          { [dbOps.gte]: time.getTime(date) },
+        ],
+      },
     },
   });
   if (!subscriptionFromDB) {
@@ -186,7 +209,7 @@ const getSubscriptions = async (username) => {
     return {
       plan_id: planID,
       start_date: time.getTime(startDate, config.timeFormats.subscriptions),
-      valid_till: time.getTime(endDate, config.timeFormats.subscriptions),
+      valid_till: endDate ? time.getTime(endDate, config.timeFormats.subscriptions) : '',
     };
   });
   return { success: true, data };
